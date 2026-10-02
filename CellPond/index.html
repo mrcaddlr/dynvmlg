@@ -262,9 +262,11 @@
 
   trash.onpointerdown=e=>{e.preventDefault()};
   trash.onclick=()=>window.CellPond?.trashDragged();
-  trash.ondragover=e=>{e.preventDefault();trash.classList.add("drag-over")};
-  trash.ondragleave=()=>trash.classList.remove("drag-over");
-  trash.onpointerup=e=>{e.preventDefault();trash.classList.remove("drag-over");window.CellPond?.trashDragged()};
+  trash.onpointerenter=()=>{trash.classList.add("drag-over");window.CellPond?.setTrashHover(true)};
+  trash.onpointerleave=()=>{trash.classList.remove("drag-over");window.CellPond?.setTrashHover(false)};
+  trash.ondragover=e=>{e.preventDefault();trash.classList.add("drag-over");window.CellPond?.setTrashHover(true)};
+  trash.ondragleave=()=>{trash.classList.remove("drag-over");window.CellPond?.setTrashHover(false)};
+  trash.onpointerup=e=>{e.preventDefault();trash.classList.remove("drag-over");window.CellPond?.setTrashHover(false);window.CellPond?.trashDragged()};
 
   sync();
 })();

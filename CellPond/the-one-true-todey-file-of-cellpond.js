@@ -2997,8 +2997,7 @@ registerRule(
 	//colourTodeCanvas.style["image-rendering"] = "pixelated"
 	colourTodeCanvas.style["position"] = "absolute"
 	colourTodeCanvas.style["top"] = "0px"
-	colourTodeCanvas.style["zIndex"] = "20"
-	
+		
 	document.body.append(colourTodeCanvas)
 
 	// Repaint the UI only when it changes. The old editor redrew the whole
@@ -3166,32 +3165,23 @@ registerRule(
 		/*if (!NO_FOOLS_MODE) {
 			colourTodeContext.filter = "grayscale(100%)"
 		}*/
-		colourTodeContext.save()
 		colourTodeContext.scale(CT_SCALE, CT_SCALE)
 
-		// Keep the growing tool collection inside a real, clipped strip.
+		// Keep the palette visually separated without clipping the actual CellPond
+		// shapes. Clipping here caused edge tools to disappear.
 		const toolbarHeight = getToolbarHeight()
 		const toolbarLeft = 8
 		const toolbarRight = Math.max(toolbarLeft + 100, innerWidth - 8)
-		colourTodeContext.fillStyle = "rgba(12, 14, 18, 0.92)"
+		colourTodeContext.fillStyle = "rgba(12, 14, 18, 0.78)"
 		colourTodeContext.fillRect(toolbarLeft, 5, toolbarRight - toolbarLeft, toolbarHeight)
-		colourTodeContext.fillStyle = "rgba(255, 255, 255, 0.07)"
+		colourTodeContext.fillStyle = "rgba(255, 255, 255, 0.10)"
 		colourTodeContext.fillRect(toolbarLeft, toolbarHeight + 4, toolbarRight - toolbarLeft, 1)
 
-		colourTodeContext.save()
-		colourTodeContext.beginPath()
-		colourTodeContext.rect(toolbarLeft, 5, toolbarRight - toolbarLeft, toolbarHeight)
-		colourTodeContext.clip()
 		for (const atom of state.colourTode.atoms) {
-			if (atom.isTool) drawAtom(atom)
-		}
-		colourTodeContext.restore()
-
-		for (const atom of state.colourTode.atoms) {
-			if (!atom.isTool) drawAtom(atom)
+			drawAtom(atom)
 		}
 
-		colourTodeContext.restore()
+		colourTodeContext.scale(1/CT_SCALE, 1/CT_SCALE)
 	}
 
 	requestAnimationFrame(colourTodeTick)

@@ -473,14 +473,25 @@ on.load(() => {
 	//===============//
 	// IMAGE + SIZES //
 	//===============//
-	const updateImageSize = () => {
-		state.image.baseSize = Math.min(canvas.width, canvas.height)
-		state.image.size = state.image.baseSize * state.camera.scale
+ 	const updateImageSize = () => {
+		const maxWidth = canvas.width
+		const maxHeight = canvas.height
+		if (state.board.width === undefined || state.board.height === undefined) {
+			const base = Math.min(maxWidth, maxHeight)
+			state.board.width = base
+			state.board.height = base
+		}
+		state.board.width = clamp(state.board.width, 240, maxWidth)
+		state.board.height = clamp(state.board.height, 240, maxHeight)
+		state.image.baseWidth = state.board.width
+		state.image.baseHeight = state.board.height
+		state.image.width = state.image.baseWidth * state.camera.scale
+		state.image.height = state.image.baseHeight * state.camera.scale
 
 		state.image.left = state.camera.x * state.camera.scale
 		state.image.top = state.camera.y * state.camera.scale
-		state.image.right = state.image.left + state.image.size
-		state.image.bottom = state.image.top + state.image.size
+		state.image.right = state.image.left + state.image.width
+		state.image.bottom = state.image.top + state.image.height
 
 		state.view.left = clamp(state.image.left, 0, canvas.width)
 		state.view.top = clamp(state.image.top, 0, canvas.height)
@@ -496,10 +507,10 @@ on.load(() => {
 		state.view.iwidth = Math.ceil(state.view.width)
 		state.view.iheight = Math.ceil(state.view.height)
 
-		state.region.left = (state.view.left - state.image.left) / state.image.size
-		state.region.right = 1.0 + (state.view.right - state.image.right) / state.image.size
-		state.region.top = (state.view.top - state.image.top) / state.image.size
-		state.region.bottom = 1.0 + (state.view.bottom - state.image.bottom) / state.image.size
+		state.region.left = (state.view.left - state.image.left) / state.image.width
+		state.region.right = 1.0 + (state.view.right - state.image.right) / state.image.width
+		state.region.top = (state.view.top - state.image.top) / state.image.height
+		state.region.bottom = 1.0 + (state.view.bottom - state.image.bottom) / state.image.height
 
 		state.region.width = state.region.right - state.region.left
 		state.region.height = state.region.bottom - state.region.top
@@ -519,8 +530,8 @@ on.load(() => {
 	updateImageSize()
 	updateImageData()
 
-	state.camera.x += (canvas.width - state.image.size) / 2
-	state.camera.y += (canvas.height - state.image.size) / 2
+	state.camera.x += (canvas.width - state.image.width) / 2
+	state.camera.y += (canvas.height - state.image.height) / 2
 
 	//======//
 	// DRAW //
@@ -596,26 +607,28 @@ on.load(() => {
 		}
 		*/
 
-		const size = state.image.size
 		const imageWidth = canvas.width
+		const imageHeight = canvas.height
+		const sizeX = state.image.width
+		const sizeY = state.image.height
 
 		const panX = state.camera.x * state.camera.scale
 		const panY = state.camera.y * state.camera.scale
 
 		// Position 
-		let left = Math.round(size * cell.left + panX)
+		let left = Math.round(sizeX * cell.left + panX)
 		if (left > canvas.width) return 0
 		if (left < 0) left = 0
 
-		let top = Math.round(size * cell.top + panY)
+		let top = Math.round(sizeY * cell.top + panY)
 		if (top > canvas.height) return 0
 		if (top < 0) top = 0
 
-		let right = Math.round(size * cell.right + panX)
+		let right = Math.round(sizeX * cell.right + panX)
 		if (right < 0) return 0
 		if (right > canvas.width) right = canvas.width
 
-		let bottom = Math.round(size * cell.bottom + panY)
+		let bottom = Math.round(sizeY * cell.bottom + panY)
 		if (bottom < 0) return 0
 		if (bottom > canvas.height) bottom = canvas.height
 
@@ -848,8 +861,8 @@ on.load(() => {
 		x -= state.camera.x * state.camera.scale / DPR
 		y -= state.camera.y * state.camera.scale / DPR
 
-		x /= state.image.size
-		y /= state.image.size
+		x /= state.image.width
+		y /= state.image.height
 
 		x *= DPR
 		y *= DPR
@@ -1074,13 +1087,6 @@ on.load(() => {
 			pointerPaddle = pointerPaddle.parent
 		}
 		const overPaddle = pointerPaddle !== undefined && pointerPaddle.isPaddle
-
-		if (overToolbar && !e.altKey && !e.ctrlKey && !e.metaKey && toolbarContentWidth > Math.max(100, innerWidth - 16)) {
-			const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY
-			toolbarScroll += delta
-			updateToolbarPositions()
-			return
-		}
 
 		if (overPaddle && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
 			const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
@@ -9704,6 +9710,30 @@ registerRule(
 		markColourTodeDirty()
 	}
 
+	const setBoardSize = (width, height) => {
+		state.board.width = clamp(Number(width) || state.board.width, 240, canvas.width)
+		state.board.height = clamp(Number(height) || state.board.height, 240, canvas.height)
+		updateImageSize()
+		markColourTodeDirty()
+	}
+
+	const getPaddleScrollState = () => {
+		const bounds = getPaddleScrollBounds()
+		const viewport = Math.max(1, innerHeight - PADDLE.y - PADDLE_MARGIN)
+		let content = viewport
+		for (const paddle of paddles) {
+			content = Math.max(content, paddle.y - PADDLE.scroll + paddle.height - PADDLE.y)
+		}
+		return {scroll: PADDLE.scroll, min: bounds.min, max: bounds.max, viewport, content}
+	}
+
+	const setPaddleScroll = (scroll) => {
+		const bounds = getPaddleScrollBounds()
+		PADDLE.scroll = clamp(Number(scroll) || 0, bounds.min, bounds.max)
+		positionPaddles()
+		markColourTodeDirty()
+	}
+
 	const trashDragged = () => {
 		const atom = hand.content
 		if (atom === undefined) return false
@@ -9732,10 +9762,13 @@ registerRule(
 		getBoardRect: () => ({
 			left: state.image.left / DPR,
 			top: state.image.top / DPR,
-			width: state.image.size / DPR,
-			height: state.image.size / DPR,
+			width: state.image.width / DPR,
+			height: state.image.height / DPR,
 			scale: state.camera.scale,
 		}),
+		setBoardSize,
+		getPaddleScrollState,
+		setPaddleScroll,
 		getToolbarState: () => ({
 			scroll: toolbarScroll,
 			maxScroll: Math.max(0, toolbarContentWidth - Math.max(100, innerWidth - 16)),

@@ -3609,6 +3609,12 @@ registerRule(
 			changeHandState(HAND.FREE)
 		},
 		mouseup: (e) => {
+			if (hand.trashDrop) {
+				hand.trashDrop = false
+				hand.content = undefined
+				changeHandState(HAND.FREE)
+				return
+			}
 			if (hand.touchButton !== 0) return
 			hand.clickContent.click(hand.clickContent)
 			hand.clickContent.dx = 0
@@ -7974,7 +7980,7 @@ registerRule(
 				paddle.expanded = true
 				updatePaddleRule(paddle)
 
-				if (paddles.last === paddle) {
+				if (paddles[paddles.length - 1] === paddle) {
 					createPaddle()
 				}
 
@@ -7983,7 +7989,7 @@ registerRule(
 				paddle.expanded = false
 				updatePaddleRule(paddle)
 
-				if (paddles.last !== paddle) {
+				if (paddles[paddles.length - 1] !== paddle) {
 					deletePaddle(paddle)
 				}
 			}
@@ -9698,8 +9704,31 @@ registerRule(
 		markColourTodeDirty()
 	}
 
+	const trashDragged = () => {
+		const atom = hand.content
+		if (atom === undefined) return false
+
+		if (atom.isPaddle) {
+			deletePaddle(atom)
+		} else {
+			const parent = atom.parent
+			if (parent !== undefined && parent.isPaddle && atom.drag !== undefined) {
+				atom.drag(atom)
+				deleteAtom(atom)
+				updatePaddleSize(parent)
+			} else {
+				deleteAtom(atom)
+			}
+		}
+
+		hand.trashDrop = true
+		markColourTodeDirty()
+		return true
+	}
+
 	window.CellPond = {
 		setBoardScale,
+		trashDragged,
 		getBoardRect: () => ({
 			left: state.image.left / DPR,
 			top: state.image.top / DPR,

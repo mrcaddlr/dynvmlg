@@ -70,136 +70,47 @@
 </script>
 
 <style>
-  :root{
-    --ui-bg:rgba(12,14,18,.86);
-    --ui-bg-strong:rgba(16,18,23,.96);
-    --ui-line:rgba(255,255,255,.12);
-    --ui-text:rgba(255,255,255,.92);
-    --ui-muted:rgba(255,255,255,.52);
-  }
-  #cellpond-ui{position:fixed;inset:0;z-index:100;pointer-events:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ui-text)}
-  #cellpond-topbar{
-    position:fixed;top:10px;right:12px;display:flex;align-items:center;gap:7px;
-    pointer-events:auto;padding:6px;border:1px solid var(--ui-line);border-radius:13px;
-    background:var(--ui-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    box-shadow:0 8px 30px rgba(0,0,0,.22)
-  }
-  #cellpond-title{
-    position:fixed;top:13px;left:14px;padding:7px 10px;border-radius:11px;
-    background:var(--ui-bg);border:1px solid var(--ui-line);font-size:12px;font-weight:650;
-    letter-spacing:.2px;pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)
-  }
-  .cp-btn{
-    appearance:none;border:1px solid rgba(255,255,255,.09);border-radius:8px;
-    background:rgba(255,255,255,.055);color:var(--ui-text);height:28px;padding:0 10px;
-    font:600 11px system-ui,sans-serif;cursor:pointer;transition:background .12s,border-color .12s,transform .12s
-  }
-  .cp-btn:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.17)}
-  .cp-btn:active{transform:scale(.97)}
-  #cellpond-toolbar-controls{
-    position:fixed;top:76px;left:50%;transform:translateX(-50%);display:flex;gap:6px;
-    pointer-events:auto;padding:5px;border-radius:11px;background:rgba(12,14,18,.72);
-    border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-    opacity:.72;transition:opacity .15s
-  }
-  #cellpond-toolbar-controls:hover{opacity:1}
-  .cp-arrow{width:30px;padding:0;font-size:15px;line-height:1}
-  #cellpond-size-readout{
-    position:fixed;padding:5px 8px;border-radius:8px;background:var(--ui-bg-strong);
-    border:1px solid var(--ui-line);color:var(--ui-text);font:600 10px system-ui,sans-serif;
-    white-space:nowrap;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s
-  }
-  #cellpond-resize-handle{
-    position:fixed;width:16px;height:16px;border-radius:5px;box-sizing:border-box;
-    border:1px solid rgba(255,255,255,.28);background:rgba(18,20,25,.88);
-    box-shadow:0 3px 12px rgba(0,0,0,.25);pointer-events:auto;cursor:nwse-resize;touch-action:none
-  }
-  #cellpond-resize-handle::after{
-    content:"";position:absolute;right:3px;bottom:3px;width:6px;height:6px;
-    border-right:2px solid rgba(255,255,255,.6);border-bottom:2px solid rgba(255,255,255,.6)
-  }
-  #cellpond-resize-handle:hover{border-color:rgba(255,255,255,.55)}
-  #cellpond-resize-handle:hover + #cellpond-size-readout{opacity:1}
-  @media(max-width:700px){
-    #cellpond-title{display:none}
-    #cellpond-topbar{top:8px;right:8px}
-    #cellpond-toolbar-controls{top:72px}
-  }
+  :root{--cp-panel:rgba(12,14,18,.82);--cp-panel2:rgba(18,20,25,.92);--cp-line:rgba(255,255,255,.11);--cp-text:rgba(255,255,255,.9);--cp-muted:rgba(255,255,255,.48)}
+  #cellpond-ui{position:fixed;inset:0;z-index:100;pointer-events:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--cp-text)}
+  #cp-brand{position:fixed;left:14px;top:12px;display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
+  #cp-mark{width:9px;height:9px;border-radius:3px;background:rgba(255,255,255,.78);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+  #cp-name{font-size:12px;font-weight:700;letter-spacing:.15px}
+  #cp-sub{font-size:10px;color:var(--cp-muted);margin-left:2px}
+  #cp-actions{position:fixed;right:12px;top:11px;display:flex;gap:5px;padding:5px;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.18);pointer-events:auto}
+  .cp-btn{appearance:none;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.055);color:var(--cp-text);height:28px;padding:0 10px;font:600 11px system-ui,sans-serif;cursor:pointer;transition:background .12s,border-color .12s}
+  .cp-btn:hover{background:rgba(255,255,255,.105);border-color:var(--cp-line)}
+  .cp-btn:active{transform:translateY(1px)}
+  #cp-tools{position:fixed;left:50%;top:76px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:4px;border:1px solid var(--cp-line);border-radius:11px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:auto;opacity:.6;transition:opacity .15s}
+  #cp-tools:hover{opacity:1}
+  #cp-tools span{font-size:9px;color:var(--cp-muted);padding:0 5px;user-select:none}
+  .cp-arrow{width:28px;padding:0;font-size:16px}
+  #cellpond-resize-handle{position:fixed;width:17px;height:17px;border-radius:5px;box-sizing:border-box;border:1px solid rgba(255,255,255,.24);background:rgba(16,18,22,.8);box-shadow:0 3px 12px rgba(0,0,0,.22);pointer-events:auto;cursor:nwse-resize;touch-action:none;opacity:.5;transition:opacity .12s}
+  #cellpond-resize-handle:hover,#cellpond-resize-handle.dragging{opacity:1}
+  #cellpond-resize-handle::after{content:"";position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-right:2px solid rgba(255,255,255,.58);border-bottom:2px solid rgba(255,255,255,.58)}
+  #cellpond-size-readout{position:fixed;padding:5px 8px;border-radius:7px;background:var(--cp-panel2);border:1px solid var(--cp-line);color:var(--cp-text);font:600 10px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s}
+  #cellpond-size-readout.visible{opacity:1;transform:none}
+  @media(max-width:700px){#cp-brand{left:8px;top:8px}#cp-sub{display:none}#cp-actions{right:8px;top:8px}#cp-tools{top:70px}}
 </style>
 <div id="cellpond-ui" aria-hidden="true">
-  <div id="cellpond-title">CellPond</div>
-  <div id="cellpond-topbar">
-    <button class="cp-btn" id="cp-pause">pause</button>
-    <button class="cp-btn" id="cp-fit">fit</button>
-  </div>
-  <div id="cellpond-toolbar-controls">
-    <button class="cp-btn cp-arrow" id="cp-left" aria-label="scroll tools left">‹</button>
-    <button class="cp-btn cp-arrow" id="cp-right" aria-label="scroll tools right">›</button>
-  </div>
-  <div id="cellpond-resize-handle" title="drag to resize the board"></div>
+  <div id="cp-brand"><div id="cp-mark"></div><div id="cp-name">CellPond</div><div id="cp-sub">visual programming</div></div>
+  <div id="cp-actions"><button class="cp-btn" id="cp-pause">pause</button><button class="cp-btn" id="cp-fit">fit</button></div>
+  <div id="cp-tools"><button class="cp-btn cp-arrow" id="cp-left">‹</button><span>tools</span><button class="cp-btn cp-arrow" id="cp-right">›</button></div>
+  <div id="cellpond-resize-handle" title="resize board"></div>
   <div id="cellpond-size-readout"></div>
 </div>
 <script>
 (()=> {
-  const handle=document.getElementById("cellpond-resize-handle");
-  const readout=document.getElementById("cellpond-size-readout");
-  const pause=document.getElementById("cp-pause");
-  const fit=document.getElementById("cp-fit");
-  const left=document.getElementById("cp-left");
-  const right=document.getElementById("cp-right");
+  const handle=document.getElementById("cellpond-resize-handle"), readout=document.getElementById("cellpond-size-readout");
+  const pause=document.getElementById("cp-pause"), fit=document.getElementById("cp-fit"), left=document.getElementById("cp-left"), right=document.getElementById("cp-right");
   let drag=null;
-
-  const sync=()=> {
-    const api=window.CellPond;
-    if(!api){requestAnimationFrame(sync);return}
-    const rect=api.getBoardRect();
-    handle.style.left=Math.round(rect.left+rect.width-8)+"px";
-    handle.style.top=Math.round(rect.top+rect.height-8)+"px";
-    readout.style.left=Math.round(rect.left+rect.width-68)+"px";
-    readout.style.top=Math.round(rect.top+rect.height+9)+"px";
-    readout.textContent=Math.round(rect.width)+" × "+Math.round(rect.height);
-    requestAnimationFrame(sync);
-  };
-
-  const scrollTools=(amount)=>{
-    const api=window.CellPond;
-    if(!api)return;
-    const state=api.getToolbarState();
-    api.setToolbarScroll(state.scroll+amount);
-  };
-
-  left.addEventListener("click",()=>scrollTools(-220));
-  right.addEventListener("click",()=>scrollTools(220));
-  fit.addEventListener("click",()=>window.CellPond?.fitBoard());
-  pause.addEventListener("click",()=>{
-    window.CellPond?.togglePause();
-    pause.textContent=pause.textContent==="pause"?"play":"pause";
-  });
-
-  handle.addEventListener("pointerdown",(event)=>{
-    const api=window.CellPond;
-    if(!api||event.button!==0)return;
-    const rect=api.getBoardRect();
-    drag={startX:event.clientX,startY:event.clientY,startScale:rect.scale};
-    handle.setPointerCapture(event.pointerId);
-    readout.style.opacity="1";
-    readout.style.transform="translateY(0)";
-    event.preventDefault();
-  });
-  handle.addEventListener("pointermove",(event)=>{
-    if(!drag||!window.CellPond)return;
-    const delta=Math.max(event.clientX-drag.startX,event.clientY-drag.startY);
-    window.CellPond.setBoardScale(drag.startScale*(1+delta/420));
-    event.preventDefault();
-  });
-  const endDrag=()=>{
-    drag=null;
-    readout.style.opacity="";
-    readout.style.transform="";
-  };
-  handle.addEventListener("pointerup",endDrag);
-  handle.addEventListener("pointercancel",endDrag);
-
+  const sync=()=>{const api=window.CellPond;if(!api){requestAnimationFrame(sync);return}const r=api.getBoardRect();handle.style.left=Math.round(r.left+r.width-8)+"px";handle.style.top=Math.round(r.top+r.height-8)+"px";readout.style.left=Math.round(r.left+r.width-66)+"px";readout.style.top=Math.round(r.top+r.height+8)+"px";readout.textContent=Math.round(r.width)+" × "+Math.round(r.height);requestAnimationFrame(sync)};
+  const scroll=n=>{const a=window.CellPond;if(!a)return;const t=a.getToolbarState();a.setToolbarScroll(t.scroll+n)};
+  left.onclick=()=>scroll(-220);right.onclick=()=>scroll(220);fit.onclick=()=>window.CellPond?.fitBoard();
+  pause.onclick=()=>{window.CellPond?.togglePause();pause.textContent=pause.textContent==="pause"?"play":"pause"};
+  handle.onpointerdown=e=>{const a=window.CellPond;if(!a||e.button!==0)return;const r=a.getBoardRect();drag={x:e.clientX,y:e.clientY,s:r.scale};handle.classList.add("dragging");readout.classList.add("visible");handle.setPointerCapture(e.pointerId);e.preventDefault()};
+  handle.onpointermove=e=>{if(!drag||!window.CellPond)return;const d=Math.max(e.clientX-drag.x,e.clientY-drag.y);window.CellPond.setBoardScale(drag.s*(1+d/420));e.preventDefault()};
+  const end=()=>{drag=null;handle.classList.remove("dragging");readout.classList.remove("visible")};
+  handle.onpointerup=end;handle.onpointercancel=end;
   sync();
 })();
 </script>

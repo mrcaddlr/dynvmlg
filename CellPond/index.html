@@ -87,7 +87,7 @@
   #cellpond-resize-handle{position:fixed;width:17px;height:17px;border-radius:5px;box-sizing:border-box;border:1px solid rgba(255,255,255,.24);background:rgba(16,18,22,.8);box-shadow:0 3px 12px rgba(0,0,0,.22);pointer-events:auto;cursor:nwse-resize;touch-action:none;opacity:.5;transition:opacity .12s}
   #cellpond-resize-handle:hover,#cellpond-resize-handle.dragging{opacity:1}
   #cellpond-resize-handle::after{content:"";position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-right:2px solid rgba(255,255,255,.58);border-bottom:2px solid rgba(255,255,255,.58)}
-  #cellpond-size-readout{position:fixed;padding:5px 8px;border-radius:7px;background:var(--cp-panel2);border:1px solid var(--cp-line);color:var(--cp-text);font:600 10px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s}
+  #cp-trash{position:fixed;right:14px;bottom:14px;width:42px;height:42px;padding:0;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);color:var(--cp-text);pointer-events:auto;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.2);opacity:.72;transition:opacity .12s,background .12s,transform .12s}#cp-trash:hover{opacity:1;background:rgba(180,55,65,.22)}#cp-trash.drag-over{opacity:1;background:rgba(210,65,75,.32);transform:scale(1.06)}#cp-trash svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}#cellpond-size-readout{position:fixed;padding:5px 8px;border-radius:7px;background:var(--cp-panel2);border:1px solid var(--cp-line);color:var(--cp-text);font:600 10px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s}
   #cellpond-size-readout.visible{opacity:1;transform:none}
   @media(max-width:700px){#cp-brand{left:8px;top:8px}#cp-sub{display:none}#cp-actions{right:8px;top:8px}#cp-tools{top:70px}}
 </style>
@@ -97,15 +97,23 @@
   <div id="cp-tools"><button class="cp-btn cp-arrow" id="cp-left">‹</button><span>tools</span><button class="cp-btn cp-arrow" id="cp-right">›</button></div>
   <div id="cellpond-resize-handle" title="resize board"></div>
   <div id="cellpond-size-readout"></div>
+  <button id="cp-trash" aria-label="Delete block" title="Drop a block here to delete it">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+  </button>
 </div>
 <script>
 (()=> {
   const handle=document.getElementById("cellpond-resize-handle"), readout=document.getElementById("cellpond-size-readout");
-  const pause=document.getElementById("cp-pause"), fit=document.getElementById("cp-fit"), left=document.getElementById("cp-left"), right=document.getElementById("cp-right");
+  const pause=document.getElementById("cp-pause"), fit=document.getElementById("cp-fit"), left=document.getElementById("cp-left"), right=document.getElementById("cp-right"), trash=document.getElementById("cp-trash");
   let drag=null;
   const sync=()=>{const api=window.CellPond;if(!api){requestAnimationFrame(sync);return}const r=api.getBoardRect();handle.style.left=Math.round(r.left+r.width-8)+"px";handle.style.top=Math.round(r.top+r.height-8)+"px";readout.style.left=Math.round(r.left+r.width-66)+"px";readout.style.top=Math.round(r.top+r.height+8)+"px";readout.textContent=Math.round(r.width)+" × "+Math.round(r.height);requestAnimationFrame(sync)};
   const scroll=n=>{const a=window.CellPond;if(!a)return;const t=a.getToolbarState();a.setToolbarScroll(t.scroll+n)};
   left.onclick=()=>scroll(-220);right.onclick=()=>scroll(220);fit.onclick=()=>window.CellPond?.fitBoard();
+  trash.onpointerdown=e=>{e.preventDefault();};
+  trash.onclick=()=>window.CellPond?.trashDragged();
+  trash.ondragover=e=>{e.preventDefault();trash.classList.add("drag-over")};
+  trash.ondragleave=()=>trash.classList.remove("drag-over");
+  trash.onpointerup=e=>{e.preventDefault();trash.classList.remove("drag-over");window.CellPond?.trashDragged()};
   pause.onclick=()=>{window.CellPond?.togglePause();pause.textContent=pause.textContent==="pause"?"play":"pause"};
   handle.onpointerdown=e=>{const a=window.CellPond;if(!a||e.button!==0)return;const r=a.getBoardRect();drag={x:e.clientX,y:e.clientY,s:r.scale};handle.classList.add("dragging");readout.classList.add("visible");handle.setPointerCapture(e.pointerId);e.preventDefault()};
   handle.onpointermove=e=>{if(!drag||!window.CellPond)return;const d=Math.max(e.clientX-drag.x,e.clientY-drag.y);window.CellPond.setBoardScale(drag.s*(1+d/420));e.preventDefault()};

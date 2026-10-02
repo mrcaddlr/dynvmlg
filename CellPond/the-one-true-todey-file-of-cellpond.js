@@ -3615,6 +3615,14 @@ registerRule(
 			changeHandState(HAND.FREE)
 		},
 		mouseup: (e) => {
+			if (hand.trashHover && hand.content !== undefined) {
+				trashDragged()
+				hand.trashHover = false
+				hand.trashDrop = false
+				hand.content = undefined
+				changeHandState(HAND.FREE)
+				return
+			}
 			if (hand.trashDrop) {
 				hand.trashDrop = false
 				hand.content = undefined
@@ -9734,6 +9742,10 @@ registerRule(
 		markColourTodeDirty()
 	}
 
+	const setTrashHover = (hover) => {
+		hand.trashHover = !!hover
+	}
+
 	const trashDragged = () => {
 		const atom = hand.content
 		if (atom === undefined) return false
@@ -9768,6 +9780,7 @@ registerRule(
 		}),
 		setBoardSize,
 		getPaddleScrollState,
+		setTrashHover,
 		setPaddleScroll,
 		getToolbarState: () => ({
 			scroll: toolbarScroll,

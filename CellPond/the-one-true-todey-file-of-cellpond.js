@@ -9680,6 +9680,11 @@ registerRule(
 			maxScroll: Math.max(0, toolbarContentWidth - Math.max(100, innerWidth - 16)),
 			height: getToolbarHeight(),
 		}),
+		setToolbarScroll: (scroll) => {
+			const maxScroll = Math.max(0, toolbarContentWidth - Math.max(100, innerWidth - 16))
+			toolbarScroll = clamp(Number(scroll) || 0, 0, maxScroll)
+			updateToolbarPositions()
+		},
 		togglePause: () => {
 			if (!state.worldBuilt) return
 			show.paused = !show.paused

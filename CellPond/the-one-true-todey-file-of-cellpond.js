@@ -1046,6 +1046,14 @@ on.load(() => {
 		e.preventDefault()
 
 		let dy = e.deltaY / 100
+		const overToolbar = e.clientY >= 0 && e.clientY <= getToolbarHeight()
+
+		if (overToolbar && !e.altKey && !e.ctrlKey && !e.metaKey && toolbarContentWidth > Math.max(100, innerWidth - 16)) {
+			const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY
+			toolbarScroll += delta
+			updateToolbarPositions()
+			return
+		}
 
 		if (e.altKey) {
 			PADDLE.scroll -= 50 * dy
@@ -2989,14 +2997,34 @@ registerRule(
 	//colourTodeCanvas.style["image-rendering"] = "pixelated"
 	colourTodeCanvas.style["position"] = "absolute"
 	colourTodeCanvas.style["top"] = "0px"
+	colourTodeCanvas.style["zIndex"] = "20"
 	
 	document.body.append(colourTodeCanvas)
+
+	// Repaint the UI only when it changes. The old editor redrew the whole
+	// overlay on every animation frame even while completely idle.
+	let colourTodeDirty = true
+	let colourTodeUpdateUntil = performance.now() + 250
+	let lastColourTodeMouseX
+	let lastColourTodeMouseY
+	const markColourTodeDirty = (updateFor = 250) => {
+		colourTodeDirty = true
+		colourTodeUpdateUntil = Math.max(colourTodeUpdateUntil, performance.now() + updateFor)
+	}
+
+	let toolbarScroll = 0
+	let toolbarContentWidth = 0
+	const toolbarTools = []
+	let updateToolbarPositions = () => {}
+	const getToolbarHeight = () => 62
 
 	on.resize(() => {
 		colourTodeCanvas.width = innerWidth * DPR
 		colourTodeCanvas.height = innerHeight * DPR
 		colourTodeCanvas.style["width"] = innerWidth
 		colourTodeCanvas.style["height"] = innerHeight
+		updateToolbarPositions()
+		markColourTodeDirty()
 	})
 
 	trigger("resize")
@@ -3005,9 +3033,30 @@ registerRule(
 	// COLOURTODE - TICK //
 	//===================//
 	const colourTodeTick = () => {
+		const mousePosition = Mouse.position
+		const mouseX = mousePosition?.[0]
+		const mouseY = mousePosition?.[1]
+		const mouseMoved = mouseX !== lastColourTodeMouseX || mouseY !== lastColourTodeMouseY
+		if (mouseMoved) {
+			lastColourTodeMouseX = mouseX
+			lastColourTodeMouseY = mouseY
+			markColourTodeDirty(80)
+		}
 
-		colourTodeUpdate()
-		colourTodeDraw()
+		const needsUpdate =
+			mouseMoved ||
+			hand.content !== undefined ||
+			performance.now() < colourTodeUpdateUntil
+
+		if (needsUpdate) {
+			colourTodeUpdate()
+		}
+
+		if (colourTodeDirty) {
+			colourTodeDraw()
+			colourTodeDirty = false
+		}
+
 		requestAnimationFrame(colourTodeTick)
 	}
 
@@ -3020,12 +3069,17 @@ registerRule(
 			const [x, y] = Mouse.position.map(n => n / CT_SCALE)
 			const dx = (x - hand.previous.x) * DPR
 			const dy = (y - hand.previous.y) * DPR
-			const velocity = {x: dx, y: dy}
-			hand.velocityHistory.push(velocity)
-			const sum = hand.velocityHistory.reduce((a, b) => ({x: a.x+b.x, y: a.y+b.y}), {x:0, y:0})
-			const average = {x: sum.x / hand.velocityHistory.length, y: sum.y / hand.velocityHistory.length}
-			hand.velocity.x = average.x
-			hand.velocity.y = average.y
+			hand.velocityHistory.push({x: dx, y: dy})
+
+			let sumX = 0
+			let sumY = 0
+			for (const velocity of hand.velocityHistory) {
+				sumX += velocity.x
+				sumY += velocity.y
+			}
+			const count = hand.velocityHistory.length
+			hand.velocity.x = sumX / count
+			hand.velocity.y = sumY / count
 			hand.previous.x = x
 			hand.previous.y = y
 		}
@@ -3054,6 +3108,7 @@ registerRule(
 		// MOVEMENT
 		if (hand.content === atom) return
 		if (atom.dx === 0 && atom.dy === 0) return
+		markColourTodeDirty(120)
 
 		atom.x += atom.dx
 		atom.y += atom.dy
@@ -3111,11 +3166,32 @@ registerRule(
 		/*if (!NO_FOOLS_MODE) {
 			colourTodeContext.filter = "grayscale(100%)"
 		}*/
+		colourTodeContext.save()
 		colourTodeContext.scale(CT_SCALE, CT_SCALE)
+
+		// Keep the growing tool collection inside a real, clipped strip.
+		const toolbarHeight = getToolbarHeight()
+		const toolbarLeft = 8
+		const toolbarRight = Math.max(toolbarLeft + 100, innerWidth - 8)
+		colourTodeContext.fillStyle = "rgba(12, 14, 18, 0.92)"
+		colourTodeContext.fillRect(toolbarLeft, 5, toolbarRight - toolbarLeft, toolbarHeight)
+		colourTodeContext.fillStyle = "rgba(255, 255, 255, 0.07)"
+		colourTodeContext.fillRect(toolbarLeft, toolbarHeight + 4, toolbarRight - toolbarLeft, 1)
+
+		colourTodeContext.save()
+		colourTodeContext.beginPath()
+		colourTodeContext.rect(toolbarLeft, 5, toolbarRight - toolbarLeft, toolbarHeight)
+		colourTodeContext.clip()
 		for (const atom of state.colourTode.atoms) {
-			drawAtom(atom)
+			if (atom.isTool) drawAtom(atom)
 		}
-		colourTodeContext.scale(1/CT_SCALE, 1/CT_SCALE)
+		colourTodeContext.restore()
+
+		for (const atom of state.colourTode.atoms) {
+			if (!atom.isTool) drawAtom(atom)
+		}
+
+		colourTodeContext.restore()
 	}
 
 	requestAnimationFrame(colourTodeTick)
@@ -3746,11 +3822,14 @@ registerRule(
 
 	const deleteAtom = (atom) => {
 		const id = state.colourTode.atoms.indexOf(atom)
+		if (id === -1) return
 		state.colourTode.atoms.splice(id, 1)
+		markColourTodeDirty()
 	}
 
 	const registerAtom = (atom) => {
 		state.colourTode.atoms.push(atom)
+		markColourTodeDirty()
 	}
 
 	// including children
@@ -3865,6 +3944,7 @@ registerRule(
 		if (!bottom) parent.children.push(child)
 		else parent.children.unshift(child)
 		child.parent = parent
+		markColourTodeDirty()
 		return child
 	}
 	
@@ -3876,6 +3956,7 @@ registerRule(
 		}
 		parent.children.splice(id, 1)
 		child.parent = COLOURTODE_BASE_PARENT
+		markColourTodeDirty()
 	}
 	
 	const giveChild = (parent, atom) => {
@@ -3889,6 +3970,7 @@ registerRule(
 		if (atom.stayAtBack || atom.behindOtherChildren) parent.children.unshift(atom)
 		else parent.children.push(atom)
 		atom.parent = parent
+		markColourTodeDirty()
 	}
 
 	const freeChild = (parent, child) => {
@@ -4113,6 +4195,7 @@ registerRule(
 			squareTool.value = diagramCell.content
 			squareTool.toolbarNeedsColourUpdate = true
 		}
+		markColourTodeDirty(180)
 	}
 
 	// Ctrl+F: sqdef
@@ -9428,6 +9511,8 @@ registerRule(
 		const atom = makeAtom({...COLOURTODE_TOOL, width, height, size, x: Math.round(menuRight), y, element})
 		atom.menuId = menuId
 		menuId++
+		atom.toolbarBaseX = atom.x
+		toolbarTools.push(atom)
 		atom.attached = true
 		atom.isTool = true
 		atom.previousBrushColour = undefined
@@ -9437,6 +9522,7 @@ registerRule(
 		atom.hasBorder = true
 		menuRight += width
 		menuRight += OPTION_MARGIN
+		toolbarContentWidth = menuRight
 
 		registerAtom(atom)
 
@@ -9453,6 +9539,16 @@ registerRule(
 	}
 
 	unlocks = {}
+	updateToolbarPositions = () => {
+		const viewportWidth = Math.max(100, innerWidth - 16)
+		const maxScroll = Math.max(0, toolbarContentWidth - viewportWidth)
+		toolbarScroll = clamp(toolbarScroll, 0, maxScroll)
+		for (const atom of toolbarTools) {
+			atom.x = atom.toolbarBaseX - toolbarScroll
+		}
+		markColourTodeDirty()
+	}
+
 	const unlockMenuTool = (unlockName) => {
 		const unlock = unlocks[unlockName]
 		if (unlock.unlocked) return
@@ -9560,6 +9656,51 @@ registerRule(
 	tallRectangleTool.update = squareTool.update
 	hexagonTool.update = squareTool.update
 	
+	//===================//
+	// UI ENHANCEMENT API //
+	//===================//
+	const setBoardScale = (scale) => {
+		const nextScale = clamp(Number(scale) || state.camera.scale, 0.35, 1.0)
+		const oldScale = state.camera.scale
+		if (Math.abs(nextScale - oldScale) < 0.0001) return
+		const centerX = canvas.width / 2
+		const centerY = canvas.height / 2
+		state.camera.scale = nextScale
+		state.camera.underScale = nextScale
+		state.camera.mscale = 1.0
+		state.camera.mscaleTarget = 1.0
+		const scaleRatio = nextScale / oldScale
+		state.camera.x += (1 - scaleRatio) * centerX / nextScale
+		state.camera.y += (1 - scaleRatio) * centerY / nextScale
+		updateImageSize()
+		markColourTodeDirty()
+	}
+
+	window.CellPond = {
+		setBoardScale,
+		getBoardRect: () => ({
+			left: state.image.left / DPR,
+			top: state.image.top / DPR,
+			width: state.image.size / DPR,
+			height: state.image.size / DPR,
+			scale: state.camera.scale,
+		}),
+		getToolbarState: () => ({
+			scroll: toolbarScroll,
+			maxScroll: Math.max(0, toolbarContentWidth - Math.max(100, innerWidth - 16)),
+			height: getToolbarHeight(),
+		}),
+		togglePause: () => {
+			if (!state.worldBuilt) return
+			show.paused = !show.paused
+			canvas.style["background-color"] = show.paused ? Colour.Black : Colour.Void
+			markColourTodeDirty()
+		},
+		fitBoard: () => setBoardScale(0.9),
+	}
+
+	updateToolbarPositions()
+
 	//=========//
 	// SHARING //
 	//=========//

@@ -70,32 +70,88 @@
 </script>
 
 <style>
-  :root{--cp-panel:rgba(12,14,18,.82);--cp-panel2:rgba(18,20,25,.92);--cp-line:rgba(255,255,255,.11);--cp-text:rgba(255,255,255,.9);--cp-muted:rgba(255,255,255,.48)}
+  :root{
+    --cp-panel:rgba(10,12,16,.84);
+    --cp-panel2:rgba(17,19,24,.94);
+    --cp-line:rgba(255,255,255,.10);
+    --cp-line2:rgba(255,255,255,.16);
+    --cp-text:rgba(255,255,255,.92);
+    --cp-muted:rgba(255,255,255,.46);
+  }
   #cellpond-ui{position:fixed;inset:0;z-index:100;pointer-events:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--cp-text)}
-  #cp-brand{position:fixed;left:14px;bottom:14px;display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
-  #cp-mark{width:9px;height:9px;border-radius:3px;background:rgba(255,255,255,.78);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
-  #cp-name{font-size:12px;font-weight:700;letter-spacing:.15px}
-  #cp-sub{font-size:10px;color:var(--cp-muted);margin-left:2px}
-  #cp-actions{position:fixed;right:12px;top:11px;display:flex;gap:5px;padding:5px;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.18);pointer-events:auto}
-  .cp-btn{appearance:none;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.055);color:var(--cp-text);height:28px;padding:0 10px;font:600 11px system-ui,sans-serif;cursor:pointer;transition:background .12s,border-color .12s}
-  .cp-btn:hover{background:rgba(255,255,255,.105);border-color:var(--cp-line)}
+  #cp-brand{
+    position:fixed;left:14px;bottom:14px;display:flex;align-items:center;gap:9px;
+    padding:8px 11px;border:1px solid var(--cp-line);border-radius:13px;
+    background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 10px 32px rgba(0,0,0,.22);pointer-events:auto
+  }
+  #cp-mark{width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.82);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+  #cp-name{font-size:12px;font-weight:750;letter-spacing:.1px}
+  #cp-sub{font-size:10px;color:var(--cp-muted);margin-left:1px}
+  #cp-actions{
+    position:fixed;right:14px;top:14px;display:flex;gap:5px;padding:5px;
+    border:1px solid var(--cp-line);border-radius:13px;background:var(--cp-panel);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 10px 32px rgba(0,0,0,.22);pointer-events:auto
+  }
+  .cp-btn{
+    appearance:none;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.055);
+    color:var(--cp-text);height:29px;padding:0 10px;font:600 11px system-ui,sans-serif;
+    cursor:pointer;transition:background .12s,border-color .12s,transform .12s
+  }
+  .cp-btn:hover{background:rgba(255,255,255,.10);border-color:var(--cp-line2)}
   .cp-btn:active{transform:translateY(1px)}
-  #cp-tools{position:fixed;left:50%;top:76px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:4px;border:1px solid var(--cp-line);border-radius:11px;background:var(--cp-panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:auto;opacity:.6;transition:opacity .15s}
-  #cp-tools:hover{opacity:1}
-  #cp-tools span{font-size:9px;color:var(--cp-muted);padding:0 5px;user-select:none}
-  .cp-arrow{width:28px;padding:0;font-size:16px}
-  #cellpond-resize-handle{position:fixed;width:17px;height:17px;border-radius:5px;box-sizing:border-box;border:1px solid rgba(255,255,255,.24);background:rgba(16,18,22,.8);box-shadow:0 3px 12px rgba(0,0,0,.22);pointer-events:auto;cursor:nwse-resize;touch-action:none;opacity:.5;transition:opacity .12s}
+  #cp-paddle-scroll{
+    position:fixed;left:7px;top:92px;bottom:70px;width:9px;padding:2px;
+    box-sizing:border-box;border:1px solid rgba(255,255,255,.08);border-radius:7px;
+    background:rgba(8,10,13,.34);opacity:0;pointer-events:auto;transition:opacity .15s;
+  }
+  #cp-paddle-scroll.visible,#cp-paddle-scroll:hover{opacity:.82}
+  #cp-paddle-thumb{
+    position:absolute;left:2px;right:2px;top:2px;min-height:26px;border-radius:4px;
+    background:rgba(255,255,255,.35);cursor:grab
+  }
+  #cp-paddle-thumb:active{cursor:grabbing;background:rgba(255,255,255,.55)}
+  #cellpond-resize-handle{
+    position:fixed;width:18px;height:18px;border-radius:6px;box-sizing:border-box;
+    border:1px solid rgba(255,255,255,.24);background:rgba(16,18,22,.84);
+    box-shadow:0 4px 14px rgba(0,0,0,.24);pointer-events:auto;cursor:nwse-resize;
+    touch-action:none;opacity:.52;transition:opacity .12s
+  }
   #cellpond-resize-handle:hover,#cellpond-resize-handle.dragging{opacity:1}
-  #cellpond-resize-handle::after{content:"";position:absolute;right:3px;bottom:3px;width:6px;height:6px;border-right:2px solid rgba(255,255,255,.58);border-bottom:2px solid rgba(255,255,255,.58)}
-  #cp-logo{position:fixed;left:14px;bottom:14px;display:flex;align-items:center;gap:9px;padding:7px 11px;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);color:var(--cp-text);pointer-events:auto;text-decoration:none;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.2);font-size:12px;font-weight:800;letter-spacing:.1px;opacity:.82;transition:opacity .12s,transform .12s}#cp-logo:hover{opacity:1;transform:translateY(-1px)}#cp-logo-mark{width:22px;height:22px;display:grid;place-items:center;font-size:16px;line-height:1}#cp-trash{position:fixed;right:14px;bottom:14px;width:42px;height:42px;padding:0;border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);color:var(--cp-text);pointer-events:auto;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.2);opacity:.72;transition:opacity .12s,background .12s,transform .12s}#cp-trash:hover{opacity:1;background:rgba(180,55,65,.22)}#cp-trash.drag-over{opacity:1;background:rgba(210,65,75,.32);transform:scale(1.06)}#cp-trash svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}#cellpond-size-readout{position:fixed;padding:5px 8px;border-radius:7px;background:var(--cp-panel2);border:1px solid var(--cp-line);color:var(--cp-text);font:600 10px system-ui,sans-serif;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s}
+  #cellpond-resize-handle::after{
+    content:"";position:absolute;right:3px;bottom:3px;width:7px;height:7px;
+    border-right:2px solid rgba(255,255,255,.58);border-bottom:2px solid rgba(255,255,255,.58)
+  }
+  #cp-trash{
+    position:fixed;right:14px;bottom:14px;width:42px;height:42px;padding:0;
+    border:1px solid var(--cp-line);border-radius:12px;background:var(--cp-panel);
+    color:var(--cp-text);pointer-events:auto;display:grid;place-items:center;cursor:pointer;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 8px 28px rgba(0,0,0,.2);opacity:.72;
+    transition:opacity .12s,background .12s,transform .12s
+  }
+  #cp-trash:hover{opacity:1;background:rgba(180,55,65,.22)}
+  #cp-trash.drag-over{opacity:1;background:rgba(210,65,75,.32);transform:scale(1.06)}
+  #cp-trash svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  #cellpond-size-readout{
+    position:fixed;padding:5px 8px;border-radius:8px;background:var(--cp-panel2);
+    border:1px solid var(--cp-line);color:var(--cp-text);font:600 10px system-ui,sans-serif;
+    pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s
+  }
   #cellpond-size-readout.visible{opacity:1;transform:none}
-  @media(max-width:700px){#cp-brand{left:8px;bottom:8px}#cp-sub{display:none}#cp-actions{right:8px;top:8px}#cp-tools{top:70px}}
+  @media(max-width:700px){
+    #cp-brand{left:8px;bottom:8px}
+    #cp-sub{display:none}
+    #cp-actions{right:8px;top:8px}
+    #cp-paddle-scroll{left:4px;top:76px;bottom:60px}
+  }
 </style>
 <div id="cellpond-ui" aria-hidden="true">
   <div id="cp-brand"><div id="cp-mark"></div><div id="cp-name">CellPond</div><div id="cp-sub">visual programming</div></div>
   <div id="cp-actions"><button class="cp-btn" id="cp-pause">pause</button><button class="cp-btn" id="cp-fit">fit</button></div>
-  <div id="cp-tools"><button class="cp-btn cp-arrow" id="cp-left">‹</button><span>tools</span><button class="cp-btn cp-arrow" id="cp-right">›</button></div>
-  <div id="cellpond-resize-handle" title="resize board"></div>
+  <div id="cp-paddle-scroll" aria-label="Programming rules scroll"><div id="cp-paddle-thumb"></div></div>
+  <div id="cellpond-resize-handle" title="resize pond"></div>
   <div id="cellpond-size-readout"></div>
   <button id="cp-trash" aria-label="Delete block" title="Drop a block here to delete it">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
@@ -103,22 +159,113 @@
 </div>
 <script>
 (()=> {
-  const handle=document.getElementById("cellpond-resize-handle"), readout=document.getElementById("cellpond-size-readout");
-  const pause=document.getElementById("cp-pause"), fit=document.getElementById("cp-fit"), left=document.getElementById("cp-left"), right=document.getElementById("cp-right"), trash=document.getElementById("cp-trash");
+  const handle=document.getElementById("cellpond-resize-handle");
+  const readout=document.getElementById("cellpond-size-readout");
+  const pause=document.getElementById("cp-pause");
+  const fit=document.getElementById("cp-fit");
+  const scrollTrack=document.getElementById("cp-paddle-scroll");
+  const scrollThumb=document.getElementById("cp-paddle-thumb");
+  const trash=document.getElementById("cp-trash");
+
   let drag=null;
-  const sync=()=>{const api=window.CellPond;if(!api){requestAnimationFrame(sync);return}const r=api.getBoardRect();handle.style.left=Math.round(r.left+r.width-8)+"px";handle.style.top=Math.round(r.top+r.height-8)+"px";readout.style.left=Math.round(r.left+r.width-66)+"px";readout.style.top=Math.round(r.top+r.height+8)+"px";readout.textContent=Math.round(r.width)+" × "+Math.round(r.height);requestAnimationFrame(sync)};
-  const scroll=n=>{const a=window.CellPond;if(!a)return;const t=a.getToolbarState();a.setToolbarScroll(t.scroll+n)};
-  left.onclick=()=>scroll(-220);right.onclick=()=>scroll(220);fit.onclick=()=>window.CellPond?.fitBoard();
-  trash.onpointerdown=e=>{e.preventDefault();};
+  let scrollDrag=null;
+
+  const sync=()=>{
+    const api=window.CellPond;
+    if(!api){requestAnimationFrame(sync);return}
+
+    const r=api.getBoardRect();
+    handle.style.left=Math.round(r.left+r.width-9)+"px";
+    handle.style.top=Math.round(r.top+r.height-9)+"px";
+
+    readout.style.left=Math.round(r.left+r.width-70)+"px";
+    readout.style.top=Math.round(r.top+r.height+8)+"px";
+    readout.textContent=Math.round(r.width)+" × "+Math.round(r.height);
+
+    const p=api.getPaddleScrollState?.();
+    if(p){
+      const overflow=Math.max(0,p.max-p.min);
+      scrollTrack.classList.toggle("visible",overflow>0);
+      if(overflow>0){
+        const trackHeight=scrollTrack.clientHeight-4;
+        const thumbHeight=Math.max(26,Math.min(trackHeight,trackHeight*(p.viewport/Math.max(p.content,p.viewport))));
+        const travel=Math.max(0,trackHeight-thumbHeight);
+        const ratio=p.max===p.min?0:(p.max-p.scroll)/(p.max-p.min);
+        scrollThumb.style.height=Math.round(thumbHeight)+"px";
+        scrollThumb.style.top=Math.round(2+travel*ratio)+"px";
+      }
+    }
+
+    requestAnimationFrame(sync);
+  };
+
+  fit.onclick=()=>window.CellPond?.fitBoard();
+  pause.onclick=()=>{
+    window.CellPond?.togglePause();
+    pause.textContent=pause.textContent==="pause"?"play":"pause";
+  };
+
+  handle.onpointerdown=e=>{
+    const api=window.CellPond;
+    if(!api||e.button!==0)return;
+    const r=api.getBoardRect();
+    drag={x:e.clientX,y:e.clientY,w:r.width,h:r.height,scale:r.scale};
+    handle.classList.add("dragging");
+    readout.classList.add("visible");
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+  handle.onpointermove=e=>{
+    if(!drag||!window.CellPond)return;
+    const w=drag.w+(e.clientX-drag.x);
+    const h=drag.h+(e.clientY-drag.y);
+    window.CellPond.setBoardSize(w*window.devicePixelRatio/drag.scale,h*window.devicePixelRatio/drag.scale);
+    e.preventDefault();
+  };
+  const endResize=()=>{
+    drag=null;
+    handle.classList.remove("dragging");
+    readout.classList.remove("visible");
+  };
+  handle.onpointerup=endResize;
+  handle.onpointercancel=endResize;
+
+  scrollThumb.onpointerdown=e=>{
+    const api=window.CellPond;
+    if(!api)return;
+    scrollDrag={y:e.clientY,start:api.getPaddleScrollState().scroll};
+    scrollThumb.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+  scrollThumb.onpointermove=e=>{
+    if(!scrollDrag||!window.CellPond)return;
+    const p=window.CellPond.getPaddleScrollState();
+    const trackHeight=scrollTrack.clientHeight-4;
+    const thumbHeight=Math.max(26,Math.min(trackHeight,trackHeight*(p.viewport/Math.max(p.content,p.viewport))));
+    const travel=Math.max(1,trackHeight-thumbHeight);
+    const dy=e.clientY-scrollDrag.y;
+    const delta=-(dy/travel)*(p.max-p.min);
+    window.CellPond.setPaddleScroll(scrollDrag.start+delta);
+    e.preventDefault();
+  };
+  const endScroll=()=>{scrollDrag=null};
+  scrollThumb.onpointerup=endScroll;
+  scrollThumb.onpointercancel=endScroll;
+  scrollTrack.onpointerdown=e=>{
+    if(e.target===scrollThumb)return;
+    const p=window.CellPond?.getPaddleScrollState();
+    if(!p)return;
+    const rect=scrollTrack.getBoundingClientRect();
+    const ratio=Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height));
+    window.CellPond.setPaddleScroll(p.max-(p.max-p.min)*ratio);
+  };
+
+  trash.onpointerdown=e=>{e.preventDefault()};
   trash.onclick=()=>window.CellPond?.trashDragged();
   trash.ondragover=e=>{e.preventDefault();trash.classList.add("drag-over")};
   trash.ondragleave=()=>trash.classList.remove("drag-over");
   trash.onpointerup=e=>{e.preventDefault();trash.classList.remove("drag-over");window.CellPond?.trashDragged()};
-  pause.onclick=()=>{window.CellPond?.togglePause();pause.textContent=pause.textContent==="pause"?"play":"pause"};
-  handle.onpointerdown=e=>{const a=window.CellPond;if(!a||e.button!==0)return;const r=a.getBoardRect();drag={x:e.clientX,y:e.clientY,s:r.scale};handle.classList.add("dragging");readout.classList.add("visible");handle.setPointerCapture(e.pointerId);e.preventDefault()};
-  handle.onpointermove=e=>{if(!drag||!window.CellPond)return;const d=Math.max(e.clientX-drag.x,e.clientY-drag.y);window.CellPond.setBoardScale(drag.s*(1+d/420));e.preventDefault()};
-  const end=()=>{drag=null;handle.classList.remove("dragging");readout.classList.remove("visible")};
-  handle.onpointerup=end;handle.onpointercancel=end;
+
   sync();
 })();
 </script>

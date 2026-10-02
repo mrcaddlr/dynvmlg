@@ -1041,12 +1041,39 @@ on.load(() => {
 
 	const ZOOM = 0.02
 	let CT_SCALE = DPR * SCALE
+
+	const getPaddleScrollBounds = () => {
+		if (paddles.length === 0) return {min: 0, max: 0}
+		const viewportTop = PADDLE.y
+		const viewportBottom = innerHeight - PADDLE_MARGIN
+		let contentBottom = PADDLE.y
+		for (const paddle of paddles) {
+			contentBottom = Math.max(contentBottom, paddle.y - PADDLE.scroll + paddle.height)
+		}
+		const max = 0
+		const min = Math.min(0, viewportBottom - contentBottom)
+		return {min, max}
+	}
+
+	const scrollPaddles = (delta) => {
+		const bounds = getPaddleScrollBounds()
+		PADDLE.scroll = clamp(PADDLE.scroll + delta, bounds.min, bounds.max)
+		positionPaddles()
+		markColourTodeDirty()
+	}
+
 	on.wheel((e) => {
 
 		e.preventDefault()
 
 		let dy = e.deltaY / 100
 		const overToolbar = e.clientY >= 0 && e.clientY <= getToolbarHeight()
+		const pointerAtom = getAtom(e.clientX / CT_SCALE, e.clientY / CT_SCALE)
+		let pointerPaddle = pointerAtom
+		while (pointerPaddle !== undefined && !pointerPaddle.isPaddle) {
+			pointerPaddle = pointerPaddle.parent
+		}
+		const overPaddle = pointerPaddle !== undefined && pointerPaddle.isPaddle
 
 		if (overToolbar && !e.altKey && !e.ctrlKey && !e.metaKey && toolbarContentWidth > Math.max(100, innerWidth - 16)) {
 			const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY
@@ -1055,9 +1082,14 @@ on.load(() => {
 			return
 		}
 
+		if (overPaddle && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+			const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+			scrollPaddles(-delta)
+			return
+		}
+
 		if (e.altKey) {
-			PADDLE.scroll -= 50 * dy
-			positionPaddles()
+			scrollPaddles(-50 * dy)
 		}
 
 		else if (e.ctrlKey || e.metaKey) {
